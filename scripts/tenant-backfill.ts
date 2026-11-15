@@ -44,7 +44,9 @@ export async function checks(q: Q) {
       const tbl = `public.${id(t.name)}`;
       const [r] = await q(`select count(*)::int as n from ${tbl} x where x.${id(w)} is not null and not exists (select 1 from public.workspaces s where s.id = x.${id(w)})`);
       out.push({ check: `D1 ${t.name}.${w}`, count: Number(r!.n) });
-      for (const u of identity.filter((c) => c !== "id" || t.name === "profiles" || t.name === "users")) {
+      // auth_user_id lives in the Better Auth id space, not public.users ids, so it is never a
+      // workspace_members.user_id; comparing it would report every converted account.
+      for (const u of identity.filter((c) => c !== "auth_user_id" && (c !== "id" || t.name === "profiles" || t.name === "users"))) {
         const [m] = await q(`select count(*)::int as n from ${tbl} x where x.${id(w)} is not null and x.${id(u)} is not null and not exists (select 1 from public.workspace_members m where m.workspace_id = x.${id(w)} and m.user_id = x.${id(u)})`);
         out.push({ check: `D2 ${t.name}.${u}->${w}`, count: Number(m!.n) });
       }
