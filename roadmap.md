@@ -241,4 +241,12 @@
 - [ ] Dudect voor OPAQUE, ratchet en VDF (wacht op gepinde Wasm uit CI)
 - [x] Pre-check 0276 -> 0277 (`scripts/tenant-backfill.ts`, offline 0 afwijkingen) en Z3-certificering 0277 (CERTIFIED)
 - [x] Live pre-check 0 afwijkingen, 0277 live op Neon (incl. herstel accountsamenvoeging), CODE_SCHEMA_LEVEL 0277
-- [ ] Nieuwe versie publiceren zodat de live site 0277 meldt
+- [x] Live codeversie bevestigd: https://rout.be/api/public/health meldt operational, schema 0277 (2026-11-15 14:05 UTC); geen deployment vanuit deze chat uitgevoerd
+
+## Finale Vercel-releasecontrole (2026-11-15)
+- [ ] Exacte nieuwste stand naar Vercel production deployen en build zonder waarschuwingen/typefouten bevestigen — wacht op Vercel-toegang; geen token, projectkoppeling of deploy-hook beschikbaar
+- [ ] Publieke profielweergaven volledig groen — @jdelplanche toont een voorbeeldprofiel; @routtestkaart23 toont een profiel-lookupfout ondanks HTTP 200
+- [ ] Echte accountsamenvoeging na deploy controleren — wacht op een geautoriseerde productie-testsessie en aangewezen testaccounts; geen echte accounts samengevoegd
+- [ ] Scaleway prekey-bundle succesvol ophalen — alle 11 @handles uit de publieke profielsitemap antwoorden 404 not_available; geen succesvolle object-read bevestigd
+- [ ] Gepubliceerd ZKP-anker ophalen en verifiëren — dezelfde 11 @handles antwoorden 404 no_anchor; geen gepubliceerd anker beschikbaar voor verificatie
+- [x] Live bevindingen vastgelegd in de overdrachtsbijlage; 100% completion niet bevestigd
