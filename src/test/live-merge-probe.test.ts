@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, it, expect } from "vitest";
 import { replayDb } from "../../scripts/formal-rls/replay";
 import { MERGE_PROBE } from "../../scripts/verify-live-merge";
