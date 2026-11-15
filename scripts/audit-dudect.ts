@@ -48,7 +48,7 @@ const ops: Op[] = [
   { name: "X25519 scalar mult (fixed vs random point)", prepare: (c) => (c ? x25519.getPublicKey(x25519.utils.randomSecretKey()) : fixedPub), run: (p) => x25519.getSharedSecret(xSk, p as Uint8Array) },
   { name: "ML-KEM-1024 decapsulation (valid vs tampered ct, implicit rejection)", prepare: (c) => { if (!c) return kemCt; const t = kemCt.slice(); t[(Math.random() * t.length) | 0] ^= 1; return t; }, run: (ct) => ml_kem1024.decapsulate(ct as Uint8Array, kem.secretKey) },
   { name: "ct_equal_32 / subtle (equal vs random)", prepare: (c) => (c ? randomBytes(32) : fixed32.slice()), run: (b) => ctEqual32(fixed32, b as Uint8Array) },
-  { name: "WebAuthn PRF -> HKDF-SHA256 expand (fixed vs random PRF)", prepare: (c) => (c ? randomBytes(32) : prf), run: (s) => hkdf(sha256, s as Uint8Array, undefined, "rout.prf.v1", 32) },
+  { name: "WebAuthn PRF -> HKDF-SHA256 expand (fixed vs random PRF)", prepare: (c) => (c ? randomBytes(32) : prf), run: (s) => hkdf(sha256, s as Uint8Array, undefined, new TextEncoder().encode("rout.prf.v1"), 32) },
   { name: "AES-256-GCM open (correct vs wrong AAD)", prepare: (c) => (c ? wrongAad : aad), run: (a) => { try { return gcm(gKey, gNonce, a as Uint8Array).decrypt(gCt); } catch { return null; } } },
 ];
 
