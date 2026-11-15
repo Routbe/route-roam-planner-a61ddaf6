@@ -27,8 +27,7 @@ export async function tipEligibility(userId: string): Promise<TipEligibility> {
   const rows = (await sql`
     select username, verified, status, verified_legal_name,
            coalesce(is_banned, false) as is_banned, coalesce(is_suspended, false) as is_suspended,
-           coalesce((to_jsonb(profiles) ->> 'is_business')::boolean, false) as is_business,
-           to_jsonb(profiles) ->> 'business_name' as business_name
+           coalesce(is_business, false) as is_business, business_name
       from public.profiles where id = ${userId} limit 1
   `) as Row[];
   const p = rows[0];

@@ -70,11 +70,11 @@ export async function readStudioProfile(userId: string): Promise<StudioProfile |
     select username, display_name, tagline, avatar_url, favicon_url, theme, card_style,
            blocks, verified, status, verified_legal_name,
            -- Tolerant: werkt ook wanneer migratie 18 nog niet is uitgevoerd.
-           to_jsonb(profiles) -> 'display_prefs' as display_prefs,
-           to_jsonb(profiles) ->> 'subdomain_alias' as subdomain_alias,
-           to_jsonb(profiles) ->> 'root_subdomain_status' as root_subdomain_status,
-           coalesce((to_jsonb(profiles) ->> 'is_business')::boolean, false) as is_business,
-           coalesce((to_jsonb(profiles) ->> 'is_influencer')::boolean, false) as is_influencer
+           profiles.display_prefs as display_prefs,
+           profiles.subdomain_alias::text as subdomain_alias,
+           profiles.root_subdomain_status::text as root_subdomain_status,
+           coalesce((profiles.is_business::text)::boolean, false) as is_business,
+           coalesce((profiles.is_influencer::text)::boolean, false) as is_influencer
       from public.profiles
      where id = ${userId}
      limit 1
@@ -204,8 +204,8 @@ export async function writeStudioProfile(userId: string, input: StudioProfileInp
     const kind = input.displayPrefs["badgeType"];
     if (kind === "influencer" || kind === "domain") {
       const flags = (await sql`
-        select coalesce((to_jsonb(profiles) ->> 'is_business')::boolean, false) as b,
-               coalesce((to_jsonb(profiles) ->> 'is_influencer')::boolean, false) as i
+        select coalesce((profiles.is_business::text)::boolean, false) as b,
+               coalesce((profiles.is_influencer::text)::boolean, false) as i
           from public.profiles where id = ${userId} limit 1
       `) as Row[];
       const ok = kind === "influencer" ? flags[0]?.["i"] === true : flags[0]?.["b"] === true;
@@ -260,12 +260,12 @@ export async function readPublicProfile(rawHandle: string) {
              status, is_suspended, is_banned, url_style, verified_legal_name,
              coalesce(show_total_reach, false) as show_total_reach,
              coalesce(total_reach_count, 0) as total_reach_count,
-             to_jsonb(profiles) -> 'display_prefs' as display_prefs,
-             to_jsonb(profiles) ->> 'country_code' as country_code,
-             to_jsonb(profiles) ->> 'subdomain_alias' as subdomain_alias,
-             coalesce((to_jsonb(profiles) ->> 'is_business')::boolean, false) as is_business,
-             to_jsonb(profiles) ->> 'business_name' as business_name,
-             coalesce((to_jsonb(profiles) ->> 'is_influencer')::boolean, false) as is_influencer
+             profiles.display_prefs as display_prefs,
+             profiles.country_code::text as country_code,
+             profiles.subdomain_alias::text as subdomain_alias,
+             coalesce((profiles.is_business::text)::boolean, false) as is_business,
+             profiles.business_name::text as business_name,
+             coalesce((profiles.is_influencer::text)::boolean, false) as is_influencer
         from public.profiles
        where coalesce(verified, false) = true
          and (lower(username) = ${username}
@@ -273,7 +273,7 @@ export async function readPublicProfile(rawHandle: string) {
          and coalesce(is_banned, false) = false
          and coalesce(is_suspended, false) = false
          and coalesce(status, 'active') not in ('frozen', 'banned', 'suspended')
-         and coalesce((to_jsonb(profiles)->'display_prefs'->>'publicProfile')::boolean, true)
+         and coalesce((profiles.display_prefs->>'publicProfile')::boolean, true)
        order by (lower(username) = ${username}) desc
        limit 1
     `) as Row[];
@@ -285,14 +285,14 @@ export async function readPublicProfile(rawHandle: string) {
     rows = (await sql`
       select id, username, display_name, tagline, avatar_url, theme, card_style,
              blocks, verified, created_at,
-             to_jsonb(profiles)->'display_prefs' as display_prefs
+             profiles.display_prefs as display_prefs
         from public.profiles
        where lower(username) = ${username}
          and coalesce(verified, false) = true
-         and coalesce((to_jsonb(profiles)->>'is_banned')::boolean, false) = false
-         and coalesce((to_jsonb(profiles)->>'is_suspended')::boolean, false) = false
-         and coalesce(to_jsonb(profiles)->>'status', 'active') not in ('frozen', 'banned', 'suspended')
-         and coalesce((to_jsonb(profiles)->'display_prefs'->>'publicProfile')::boolean, true)
+         and coalesce((profiles.is_banned::text)::boolean, false) = false
+         and coalesce((profiles.is_suspended::text)::boolean, false) = false
+         and coalesce(profiles.status::text, 'active') not in ('frozen', 'banned', 'suspended')
+         and coalesce((profiles.display_prefs->>'publicProfile')::boolean, true)
        limit 1
     `) as Row[];
   }
@@ -337,8 +337,8 @@ async function readTrustMeta(profile: Row) {
     const { tiersFor } = await import("./identity/identity-tiers");
     const rows = (await sql`
       select iv.verification_provider::text as provider, coalesce(iv.is_verified, false) as verified,
-             coalesce((to_jsonb(p) ->> 'is_paid')::boolean, false) as is_paid,
-             to_jsonb(p) ->> 'early_believer_at' as early_believer_at
+             coalesce(p.is_paid, false) as is_paid,
+             p.early_believer_at
         from public.profiles p
         left join public.identity_verifications iv on iv.user_id = p.id
        where p.id = ${id} limit 1`) as Row[];

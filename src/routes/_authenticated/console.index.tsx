@@ -2,6 +2,7 @@ import { useI18n } from "@/lib/i18n";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowUpRight, Blocks, Bot, KeyRound, ReceiptText } from "lucide-react";
 import { ConsolePage } from "@/components/console/ConsolePage";
+import { HardwarePublication } from "@/components/console/HardwarePublication";
 
 const CARDS = [
   { to: "/console/apps", title: "Identity & OAuth", kicker: "Login met ROUT", text: "Beheer OIDC-apps, credentials, redirects, scopes en beveiligingsflows.", icon: Blocks },
@@ -37,5 +38,6 @@ function ConsoleHome() {
         </Link>)}
       </div>
     </div>
+    <HardwarePublication />
   </ConsolePage>;
 }

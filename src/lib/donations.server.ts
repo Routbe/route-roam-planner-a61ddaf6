@@ -41,7 +41,7 @@ export async function readDonationTarget(rawHandle: string): Promise<DonationTar
     rows = (await sql`
       select id, username, display_name, tagline, avatar_url, verified, is_paid,
              is_early_believer, status, is_banned, is_suspended, verified_legal_name,
-             to_jsonb(profiles) -> 'display_prefs' as display_prefs
+             display_prefs
         from public.profiles
        where username = ${handle}
        limit 1

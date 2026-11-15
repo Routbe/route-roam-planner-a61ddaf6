@@ -173,9 +173,9 @@ export async function readPublicAliasProfile(rawHandle: string) {
            coalesce(p.is_suspended, false) as is_suspended,
            coalesce(p.verified, false) as owner_verified,
            p.verified_at as owner_verified_at,
-           coalesce((to_jsonb(p) ->> 'is_paid')::boolean, false) as owner_is_paid,
-           to_jsonb(p) ->> 'tier' as owner_tier,
-           to_jsonb(p) ->> 'url_style' as owner_url_style,
+           coalesce((p.is_paid::text)::boolean, false) as owner_is_paid,
+           p.tier::text as owner_tier,
+           p.url_style::text as owner_url_style,
            iv.verification_provider::text as owner_identity_provider,
            coalesce(iv.is_verified, false) as owner_identity_verified
       from public.alias_profiles a

@@ -23,7 +23,7 @@ export const Route = createFileRoute("/$username_/prekey-bundle.json")({
       GET: async ({ params }) => {
         const { readPrekeyDocument, productionReadDeps } = await import("@/lib/pq/prekey-publish.server");
         const { storageConfigured } = await import("@/lib/storage/s3.server");
-        if (!storageConfigured("client")) return json(404, JSON.stringify({ error: "not_available" }), "no-store");
+        if (!storageConfigured("client")) return json(503, JSON.stringify({ error: "storage_unavailable" }), "no-store");
         try {
           const r = await readPrekeyDocument(await productionReadDeps(), String(params.username ?? ""));
           if (r.status === "invalid_handle") return json(400, JSON.stringify({ error: "invalid_handle" }), "no-store");
