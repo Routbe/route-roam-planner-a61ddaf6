@@ -7,7 +7,7 @@ use rout_zk::vdf_cg::{evaluate, verify, PROOF_LEN, P};
 fn discriminant_is_fundamental() {
     // p = 3 mod 4  <=>  D = -p = 1 mod 4; top bit set => 2048 bits.
     assert_eq!(P[0] & 3, 3);
-    assert!(P[31] >> 63 == 1 || P[0] >> 63 == 1);
+    assert_eq!(P[31] >> 63, 1);
 }
 
 #[test]
