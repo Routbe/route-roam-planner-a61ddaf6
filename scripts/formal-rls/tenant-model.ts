@@ -23,7 +23,7 @@ export const IDENTITY_FUNCTIONS = new Set(["rout_current_user_id", "current_app_
  */
 /** columns: the declassification covers only these columns, and only while rout_app has no table-level SELECT. */
 export type Declassification = { table: string; cmd: "SELECT" | "INSERT"; reason: string; columns?: readonly string[] };
-export const DECLASSIFIED: ReadonlyArray<Declassification> = [
+const BASE_DECLASSIFIED: ReadonlyArray<Declassification> = [
   { table: "public.badges", cmd: "SELECT", reason: "badge catalogue shown on every public profile; no member columns" },
   { table: "public.reserved_brands", cmd: "SELECT", reason: "reserved brand names, checked at sign-up before any identity exists" },
   { table: "public.reserved_handles", cmd: "SELECT", reason: "reserved handles, checked at sign-up before any identity exists" },
@@ -35,14 +35,10 @@ export const DECLASSIFIED: ReadonlyArray<Declassification> = [
   { table: "public.account_deletion_audit", cmd: "INSERT", reason: "append-only, no member columns; each row carries an HMAC under the server secret, so a forged row fails verification" },
 ];
 
-/** Private profile columns (db-pending/0277): only owner, admin, notification and token definers read them. */
+/** Private profile columns (db/0277): only owner, admin, notification and token definers read them. */
 export const PRIVATE_PROFILE_COLUMNS = ["email", "forwarding_email", "forwarding_email_token", "forwarding_email_token_expires_at", "legal_first_name", "legal_last_name", "last_city", "last_country", "last_location_at"] as const;
-/**
- * Reviewed entries for the held-back db-pending/0277. They move into DECLASSIFIED (and the KNOWN_OPEN
- * entries F1/F2 leave) in the change that moves 0277 into db/; until then the pending-migration test
- * passes them to the verifier explicitly.
- */
-export const PENDING_0277_DECLASSIFIED: ReadonlyArray<Declassification> = [
+/** Reviewed declassification db/0277 introduced (public profile columns only); part of DECLASSIFIED. */
+export const DECLASSIFIED_BY_0277: ReadonlyArray<Declassification> = [
   { table: "public.profiles", cmd: "SELECT", reason: "public profile columns (handle, display name, design, badges, status); every private column is withheld from rout_app by column privileges", columns: ["id", "username", "display_name", "tagline", "bio", "avatar_url", "favicon_url", "theme", "card_style", "blocks", "tier", "status", "verified", "verified_at", "verified_legal_name", "is_suspended", "is_banned", "url_style", "created_at", "updated_at", "preferred_language", "business_info", "is_early_believer", "is_paid", "subdomain_enabled", "custom_domain", "bluesky_did", "redirect_target", "show_email_publicly", "forwarding_email_verified", "handle_grant", "payment_method", "moderated_at", "moderated_by", "moderation_reason", "alias_status", "alias_sync_status", "alias_sync_attempts", "alias_sync_error", "alias_synced_at", "referred_by", "referral_count", "country_code", "display_prefs", "is_admin", "subdomain_alias", "subdomain_tier", "root_subdomain_status", "bluesky_handle", "show_vcard_button", "invited_count", "verified_invites", "stripe_account_id", "stripe_account_status", "stripe_charges_enabled", "stripe_payouts_enabled", "show_total_reach", "total_reach_count", "reach_last_synced_at", "total_reach_manual", "is_business", "business_name", "business_vat", "is_influencer", "is_shadowbanned", "profile_descriptions", "workspace_id", "is_early_verified", "early_believer_at"] },
 ];
 
@@ -69,10 +65,13 @@ export const CLOSED_BY_0276: ReadonlyArray<string> = [
   "rls:public.users:INSERT:check",
   "rls:public.profiles:INSERT:check",
 ];
-const ORACLE_OPEN = "personal or externally known identifier: a duplicate-key error tells whether another member holds it; fix by moving writes into a definer that answers uniformly";
-export const KNOWN_OPEN: ReadonlyArray<{ id: string; reason: string }> = [
+/** Findings db/0277 (CONTRACT, released 2026-11-15) closed: F1 and F2. Kept so replay tests can show earlier stages. */
+export const CLOSED_BY_0277: ReadonlyArray<{ id: string; reason: string }> = [
   { id: "rls:public.profiles:SELECT:using", reason: "F1 rout_public_read = true exposes every profile column (email, legal names, forwarding token, location, Stripe ids) to rout_app; privacy is enforced only in server code. Needs EXPAND (public reads through public_profiles / a definer) before CONTRACT drops the policy" },
   { id: "rls:public.social_links:SELECT:using", reason: "F2 social_links_public_select = true also exposes verification_code and last_error; the owner policies key on app.current_user_id, which the app never sets" },
+];
+const ORACLE_OPEN = "personal or externally known identifier: a duplicate-key error tells whether another member holds it; fix by moving writes into a definer that answers uniformly";
+export const KNOWN_OPEN: ReadonlyArray<{ id: string; reason: string }> = [
   ...["users(email_normalized)", "profiles(stripe_account_id)", "identity_links(issuer,provider_sub)", "user_identities(provider,provider_account_id)", "user_linked_accounts(platform,provider_account_id)", "user_snapchat(external_id)", "identity_relays(proxy_email)", "identity_verifications(unique_human_id)"].map((k) => ({ id: `oracle:${k}`, reason: `F6 ${ORACLE_OPEN}` })),
 ];
 
@@ -150,3 +149,6 @@ export const PINNED_FUNCTIONS: Readonly<Record<string, string>> = {
      and not exists (select 1 from public.workspace_members m where m.workspace_id = ws)
 `,
 };
+
+/** Every reviewed declassification in force on db/ (0277 included). */
+export const DECLASSIFIED: ReadonlyArray<Declassification> = [...BASE_DECLASSIFIED, ...DECLASSIFIED_BY_0277];

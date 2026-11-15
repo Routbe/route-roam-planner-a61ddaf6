@@ -237,6 +237,8 @@
 - [x] Wesolowski VDF: RSA-2048 + class groups (8/8 unit + 2048-bit test groen)
 - [x] Hybride PQ-Noise tunnel (ML-KEM-1024 + X25519, IKpsk2-basis)
 - [x] Dudect-script (`bun run test:dudect`) gebouwd en verkort gedraaid
-- [ ] Dudect 1M-run op een stille machine (open: ML-KEM-1024 decaps |t| > 4.5; OPAQUE/ratchet/VDF wachten op gepinde Wasm uit CI)
+- [x] Dudect 1M-run: alle vijf operaties |t| < 4.5 (ML-KEM 3,68)
+- [ ] Dudect voor OPAQUE, ratchet en VDF (wacht op gepinde Wasm uit CI)
 - [x] Pre-check 0276 -> 0277 (`scripts/tenant-backfill.ts`, offline 0 afwijkingen) en Z3-certificering 0277 (CERTIFIED)
-- [ ] Pre-check tegen productie + GO eigenaar voor 0277
+- [x] Live pre-check 0 afwijkingen, 0277 live op Neon (incl. herstel accountsamenvoeging), CODE_SCHEMA_LEVEL 0277
+- [ ] Nieuwe versie publiceren zodat de live site 0277 meldt

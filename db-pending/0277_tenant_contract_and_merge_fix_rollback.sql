@@ -1,4 +1,4 @@
--- Rollback of db-pending/0277_private_columns_contract.sql: restores 0276. Idempotent.
+-- Rollback of db-pending/0277_tenant_contract_and_merge_fix.sql: restores 0276. Idempotent.
 -- Pending handle invites get the member's address back, so the 0276 rollback can run afterwards.
 
 grant select on public.profiles to rout_app;
@@ -21,3 +21,10 @@ as $function$
 update public.workspace_invites i set email = u.email
   from public.users u
  where i.email is null and i.status = 'pending' and u.id = i.invited_user_id;
+
+revoke execute on function public.rout_is_workspace_member(uuid) from rout_merge_executor;
+revoke execute on function public.rout_tenant_ref_kept(text, uuid, uuid) from rout_merge_executor;
+revoke execute on function public.current_app_user_id() from rout_merge_executor;
+revoke execute on function public.rout_workspace_claimable(uuid) from rout_merge_executor;
+revoke execute on function public.rout_workspace_role(uuid) from rout_merge_executor;
+revoke execute on function public.rout_caller_is_admin() from rout_merge_executor;

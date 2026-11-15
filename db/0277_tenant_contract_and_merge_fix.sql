@@ -1,4 +1,4 @@
--- 0277_private_columns_contract.sql — Stap 10 part II (CONTRACT, held in db-pending/ until production
+-- 0277_tenant_contract_and_merge_fix.sql — Stap 10 part II (CONTRACT, released after production reported 0276 and the owner's GO; was held until production
 -- runs the code that uses the 0276 EXPAND functions: the health probe must report schema >= 0276).
 --
 --   F1  rout_app reads the private profile columns (email, forwarding_email, forwarding_email_token, forwarding_email_token_expires_at, legal_first_name, legal_last_name, last_city, last_country, last_location_at)
@@ -8,6 +8,10 @@
 --       platform admins; public pages use rout_public_social_links.
 --   F9  rout_resolve_account returns an e-mail address only when the caller looked the member up by
 --       that same address; for an @handle it returns null. Pending handle invites drop the stored address.
+--
+--   MERGE  0276 added policies whose helpers the account-merge executor could not run, so every merge
+--       failed with "permission denied for function rout_is_workspace_member". rout_merge_executor gets
+--       EXECUTE on exactly the helpers its policies depend on (scripts/formal-rls/policy-grant-audit.ts).
 --
 -- A new profiles column is not readable by rout_app until a migration grants it (column privileges).
 -- Rollback: db-pending/0277_private_columns_contract_rollback.sql.
@@ -50,3 +54,11 @@ $function$;
 update public.workspace_invites i set email = null
  where i.status = 'pending' and i.invited_user_id is not null
    and exists (select 1 from public.users u where u.id = i.invited_user_id and pg_catalog.lower(u.email) = pg_catalog.lower(i.email));
+
+-- MERGE: helpers that policies on tables rout_merge_executor writes depend on (audit: 0 gaps after this).
+grant execute on function public.rout_is_workspace_member(uuid) to rout_merge_executor;
+grant execute on function public.rout_tenant_ref_kept(text, uuid, uuid) to rout_merge_executor;
+grant execute on function public.current_app_user_id() to rout_merge_executor;
+grant execute on function public.rout_workspace_claimable(uuid) to rout_merge_executor;
+grant execute on function public.rout_workspace_role(uuid) to rout_merge_executor;
+grant execute on function public.rout_caller_is_admin() to rout_merge_executor;

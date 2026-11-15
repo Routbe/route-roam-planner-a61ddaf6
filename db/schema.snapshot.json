@@ -17426,9 +17426,83 @@
         "rout_app": [
           "DELETE",
           "INSERT",
-          "SELECT",
           "UPDATE"
         ]
+      },
+      "columnGrants": {
+        "rout_app": {
+          "SELECT": [
+            "alias_status",
+            "alias_sync_attempts",
+            "alias_sync_error",
+            "alias_sync_status",
+            "alias_synced_at",
+            "avatar_url",
+            "bio",
+            "blocks",
+            "bluesky_did",
+            "bluesky_handle",
+            "business_info",
+            "business_name",
+            "business_vat",
+            "card_style",
+            "country_code",
+            "created_at",
+            "custom_domain",
+            "display_name",
+            "display_prefs",
+            "early_believer_at",
+            "favicon_url",
+            "forwarding_email_verified",
+            "handle_grant",
+            "id",
+            "invited_count",
+            "is_admin",
+            "is_banned",
+            "is_business",
+            "is_early_believer",
+            "is_early_verified",
+            "is_influencer",
+            "is_paid",
+            "is_shadowbanned",
+            "is_suspended",
+            "moderated_at",
+            "moderated_by",
+            "moderation_reason",
+            "payment_method",
+            "preferred_language",
+            "profile_descriptions",
+            "reach_last_synced_at",
+            "redirect_target",
+            "referral_count",
+            "referred_by",
+            "root_subdomain_status",
+            "show_email_publicly",
+            "show_total_reach",
+            "show_vcard_button",
+            "status",
+            "stripe_account_id",
+            "stripe_account_status",
+            "stripe_charges_enabled",
+            "stripe_payouts_enabled",
+            "subdomain_alias",
+            "subdomain_enabled",
+            "subdomain_tier",
+            "tagline",
+            "theme",
+            "tier",
+            "total_reach_count",
+            "total_reach_manual",
+            "updated_at",
+            "url_style",
+            "username",
+            "verified",
+            "verified_at",
+            "verified_invites",
+            "verified_legal_name",
+            "workspace_id"
+          ]
+        }
       }
     },
     {
@@ -21085,6 +21159,16 @@
           "check": "(profile_id = rout_current_user_id())"
         },
         {
+          "name": "social_links_owner_select",
+          "permissive": true,
+          "roles": [
+            "public"
+          ],
+          "cmd": "SELECT",
+          "using": "((profile_id = rout_current_user_id()) OR rout_caller_is_admin())",
+          "check": null
+        },
+        {
           "name": "social_links_owner_update",
           "permissive": true,
           "roles": [
@@ -21093,16 +21177,6 @@
           "cmd": "UPDATE",
           "using": "(profile_id = rout_current_user_id())",
           "check": "(profile_id = rout_current_user_id())"
-        },
-        {
-          "name": "social_links_public_select",
-          "permissive": true,
-          "roles": [
-            "public"
-          ],
-          "cmd": "SELECT",
-          "using": "true",
-          "check": null
         }
       ],
       "grants": {
@@ -32672,7 +32746,7 @@
       "schema": "public",
       "name": "rout_resolve_account",
       "args": "p_identifier text",
-      "def": "CREATE OR REPLACE FUNCTION public.rout_resolve_account(p_identifier text)\n RETURNS TABLE(user_id uuid, email text, username text)\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'pg_temp'\nAS $function$\n  select u.id, u.email, p.username from public.users u left join public.profiles p on p.id = u.id\n  where public.rout_current_user_id() is not null and u.account_status = 'active'\n    and (lower(p.username) = lower(ltrim(p_identifier, '@')) or u.email_normalized = lower(p_identifier))\n  limit 1 $function$"
+      "def": "CREATE OR REPLACE FUNCTION public.rout_resolve_account(p_identifier text)\n RETURNS TABLE(user_id uuid, email text, username text)\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'pg_temp'\nAS $function$\n  select u.id, case when u.email_normalized = pg_catalog.lower(p_identifier) then u.email end, p.username\n    from public.users u left join public.profiles p on p.id = u.id\n  where public.rout_current_user_id() is not null and u.account_status = 'active'\n    and (pg_catalog.lower(p.username) = pg_catalog.lower(pg_catalog.ltrim(p_identifier, '@'))\n         or u.email_normalized = pg_catalog.lower(p_identifier))\n  limit 1\n$function$"
     },
     {
       "schema": "public",
