@@ -14,6 +14,7 @@
  *   bun scripts/tenant-backfill.ts                       # dry run on an offline PGlite replay of db/
  *   bun scripts/tenant-backfill.ts --url-env OWNER_DATABASE_URL            # read-only report
  *   bun scripts/tenant-backfill.ts --url-env OWNER_DATABASE_URL --apply    # B1 in batches of 500
+ *   bun scripts/tenant-backfill.ts --gateway             # read-only report through the agent's Neon connector
  *
  * Idempotent: --apply only nulls B1 addresses (same predicate as 0277) and re-running finds 0.
  * D1-D3 are never "fixed" automatically: a deviation there is a human decision. Exit 1 if any
@@ -25,6 +26,9 @@ type Q = (sql: string, params?: unknown[]) => Promise<Record<string, unknown>[]>
 const args = process.argv.slice(2);
 const urlEnv = args.includes("--url-env") ? args[args.indexOf("--url-env") + 1] : undefined;
 const apply = args.includes("--apply");
+const gateway = args.includes("--gateway");
+/** Only SELECT statements may go through the gateway mode. */
+const READ_ONLY = /^\s*(with|select)\b/i;
 const BATCH = 500;
 const id = (s: string) => `"${s.replace(/"/g, '""')}"`;
 
@@ -55,7 +59,23 @@ export async function checks(q: Q) {
 
 async function main() {
   let q: Q, close: () => Promise<void>;
-  if (urlEnv) {
+  if (gateway) {
+    if (apply) throw new Error("--gateway is read-only; --apply is refused");
+    const key = process.env.LOVABLE_API_KEY, conn = process.env.NEON_API_KEY;
+    if (!key || !conn) throw new Error("LOVABLE_API_KEY and NEON_API_KEY are required for --gateway");
+    q = async (s, p) => {
+      if (!READ_ONLY.test(s)) throw new Error("refused: not a read-only statement");
+      const res = await fetch("https://connector-gateway.lovable.dev/neon/sql", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}`, "X-Connection-Api-Key": conn, "Content-Type": "application/json" },
+        body: JSON.stringify({ query: `begin read only; ${s}`.replace(/^begin read only; /, ""), params: p ?? [] }),
+      });
+      const text = await res.text();
+      if (!res.ok) throw new Error(`${res.status}: ${text.slice(0, 300)}`);
+      return (JSON.parse(text) as { rows: Record<string, unknown>[] }).rows;
+    };
+    close = async () => {};
+  } else if (urlEnv) {
     const url = process.env[urlEnv];
     if (!url) throw new Error(`${urlEnv} is not set`);
     const { Pool } = await import("@neondatabase/serverless");
@@ -78,7 +98,7 @@ async function main() {
     }
     const res = await checks(q);
     const bad = res.filter((r) => r.count !== 0);
-    console.log(`${res.length} checks, ${bad.length} with deviations${urlEnv ? "" : " (offline replay)"}.`);
+    console.log(`${res.length} checks, ${bad.length} with deviations${gateway ? " (live, read-only)" : urlEnv ? "" : " (offline replay)"}.`);
     for (const r of bad) console.log(`  ${r.check}: ${r.count}`);
     process.exitCode = bad.length ? 1 : 0;
   } finally {
