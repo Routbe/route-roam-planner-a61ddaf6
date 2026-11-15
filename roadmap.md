@@ -232,9 +232,11 @@
   - [x] 0268/0269 naar db-archive/ (eigenaar 2026-11-14)
   - [x] 0272 live op Neon (GO eigenaar 2026-11-14), byte-gelijk met de replay
 
-## Stap 10 (herzien, wacht op Approve)
-- [ ] Rollout 0276 op Neon + CODE_SCHEMA_LEVEL 0276
-- [ ] Wesolowski VDF: RSA-2048 + class groups (geen trusted setup), allocator-vrij, volatile wipe
-- [ ] Hybride PQ-Noise tunnel (ML-KEM-1024 + X25519, IKpsk2-basis)
-- [ ] Dudect-audit: 1M iteraties, 10k warm-up, --expose-gc, ook PRF- en AES-GCM-AAD-pad
-- [ ] Backfill-/verificatiescript 0276 -> 0277 en Z3-certificering 0277
+## Stap 10
+- [x] Rollout 0276 op Neon + CODE_SCHEMA_LEVEL 0276
+- [x] Wesolowski VDF: RSA-2048 + class groups (8/8 unit + 2048-bit test groen)
+- [x] Hybride PQ-Noise tunnel (ML-KEM-1024 + X25519, IKpsk2-basis)
+- [x] Dudect-script (`bun run test:dudect`) gebouwd en verkort gedraaid
+- [ ] Dudect 1M-run op een stille machine (open: ML-KEM-1024 decaps |t| > 4.5; OPAQUE/ratchet/VDF wachten op gepinde Wasm uit CI)
+- [x] Pre-check 0276 -> 0277 (`scripts/tenant-backfill.ts`, offline 0 afwijkingen) en Z3-certificering 0277 (CERTIFIED)
+- [ ] Pre-check tegen productie + GO eigenaar voor 0277

@@ -783,7 +783,7 @@ mod unit {
     #[test]
     fn vdf_round_trip_small_discriminant_and_tamper() {
         // A 2048-bit run is in tests/vdf.rs; here the logic on a 64-bit discriminant.
-        let dd = Int::from_limbs(&[0xffff_ffff_ffff_ffc5u64], true); // -(2^64 - 59), 2^64-59 is prime, = 3 mod 4
+        let dd = Int::from_limbs(&[0xffff_ffff_ffff_ff43u64], true); // -(2^64 - 189): 2^64-189 is prime and = 3 mod 4, so D = 1 mod 4 (fundamental)
         let mut proof = [0u8; PROOF_LEN];
         evaluate_with(&dd, b"ledger", 200, &mut proof).unwrap();
         verify_with(&dd, b"ledger", 200, &proof).unwrap();

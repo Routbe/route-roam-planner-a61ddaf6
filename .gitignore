@@ -34,3 +34,4 @@ dist-ssr
 # TLC scratch (formal/recovery-v4/run-tlc.sh)
 formal/**/.tlc-witness.*
 formal/**/states/
+wasm/*/target/

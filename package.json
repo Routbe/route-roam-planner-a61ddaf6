@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify:rls": "bun scripts/formal-rls-verifier.ts"
+    "verify:rls": "bun scripts/formal-rls-verifier.ts",
+    "test:dudect": "bun --expose-gc scripts/audit-dudect.ts"
   },
   "overrides": {
     "rolldown": "1.2.1"
