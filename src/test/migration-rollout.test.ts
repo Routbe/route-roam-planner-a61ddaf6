@@ -34,7 +34,8 @@ describe("one-file rollout batch (0277)", () => {
     }
   };
   const newFns = async () =>
-    (await db.query<{ n: number }>("select count(*)::int as n from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname in ('rout_tenant_ref_kept', 'rout_public_social_links', 'rout_profile_private_mine')")).rows[0]!.n;
+    // 0277: policy helpers the account-merge executor may run (0 before, 6 after).
+    (await db.query<{ n: number }>("select count(*)::int as n from unnest(array['public.rout_is_workspace_member(uuid)', 'public.rout_tenant_ref_kept(text,uuid,uuid)', 'public.current_app_user_id()', 'public.rout_workspace_claimable(uuid)', 'public.rout_workspace_role(uuid)', 'public.rout_caller_is_admin()']) f where has_function_privilege('rout_merge_executor', f, 'EXECUTE')")).rows[0]!.n;
   const recorded = async () => (await db.query<{ checksum: string }>("select checksum from public.schema_migrations where filename = $1", [FILE])).rows;
 
   beforeAll(async () => {
@@ -70,7 +71,7 @@ describe("one-file rollout batch (0277)", () => {
     const rows = await batch(rolloutBatch(FILE, AFTER, BODY));
     expect(rows[1]).toEqual([{ applied: checksumOf(BODY) }]);
     expect(await recorded()).toEqual([{ checksum: checksumOf(BODY) }]);
-    expect(await newFns()).toBe(3);
+    expect(await newFns()).toBe(6);
     const catalog = await readCatalog(async (q) => (await db.query<Record<string, unknown>>(q)).rows);
     expect(catalogJson(catalog)).toBe(readFileSync(join(DIR, "schema.snapshot.json"), "utf8"));
     expect((await db.query("select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace where p.proname = 'rout_rollout'")).rows).toEqual([]);
