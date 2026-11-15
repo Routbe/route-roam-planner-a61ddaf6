@@ -1,6 +1,6 @@
 // @vitest-environment node
 /**
- * Stap 10 part II: db/0276 (EXPAND, released 2026-11-15) and the held-back db-pending/0277 (CONTRACT).
+ * Stap 10 part II: db/0276 (EXPAND, released 2026-11-15) and db/0277 (CONTRACT, released 2026-11-15).
  * Replays db/ (0275) on PGlite, shows F1, F2, F3, F8b and F9 are real there, then applies 0276 and
  * 0277 and shows each is closed while the legitimate flows keep working, that the Z3 verifier
  * proves the result (only the reviewed 0277 declassification of public profile columns is added),
