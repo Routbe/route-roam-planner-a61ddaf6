@@ -353,7 +353,8 @@ describe("multi-tenant attacks on a replay of db/ (PGlite)", () => {
     const v1 = await verify();
     expect(v1.findings.map((f) => f.id).filter((id) => FIXED_BY_0275.includes(id))).toEqual([]);
     expect(v1.findings.map((f) => f.id).filter((id) => !knownAt0275.has(id))).toEqual([]);
-    expect(v1.unusedModelEntries).toEqual([]);
+    // The 0277 declassification of public profile columns exists only from 0277 on.
+    expect(v1.unusedModelEntries.filter((e) => e !== "declassified:public.profiles:SELECT")).toEqual([]);
     const fn = await db.query<{ pub: boolean; app: boolean }>(`select has_function_privilege('public', 'public.rout_workspace_claimable(uuid)', 'execute') as pub, has_function_privilege('rout_app', 'public.rout_workspace_claimable(uuid)', 'execute') as app`);
     expect(fn.rows[0]).toEqual({ pub: false, app: true });
 
