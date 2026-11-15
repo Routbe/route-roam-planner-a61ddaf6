@@ -61,3 +61,4 @@ grant execute on function public.rout_tenant_ref_kept(text, uuid, uuid) to rout_
 grant execute on function public.current_app_user_id() to rout_merge_executor;
 grant execute on function public.rout_workspace_claimable(uuid) to rout_merge_executor;
 grant execute on function public.rout_workspace_role(uuid) to rout_merge_executor;
+grant execute on function public.rout_caller_is_admin() to rout_merge_executor;
