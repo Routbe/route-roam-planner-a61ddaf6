@@ -872,9 +872,9 @@ export async function isVerifiedDeveloper(userId: string): Promise<boolean> {
     }
   };
   const [profile] = await safe(() =>
-    sql`select to_jsonb(p) as p from public.profiles p where p.id = ${userId} limit 1`,
+    sql`select verified, is_paid, is_early_believer, is_banned, is_suspended from public.profiles where id = ${userId} limit 1`,
   );
-  const p = (profile?.["p"] ?? {}) as Record<string, unknown>;
+  const p = (profile ?? {}) as Record<string, unknown>;
   const admin = await safe(() =>
     sql`select 1 where public.rout_has_role(${userId}::uuid, 'admin')`,
   );

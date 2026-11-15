@@ -14,7 +14,7 @@ import { mergeTimeline } from "@/lib/public-timeline";
  */
 export async function readPublicTimeline(userId: string): Promise<TimelineItem[]> {
   const prof = (await sql`
-    select to_jsonb(profiles) -> 'display_prefs' as display_prefs,
+    select display_prefs,
            coalesce(is_banned, false) as banned, status
       from public.profiles where id = ${userId} limit 1
   `) as Row[];

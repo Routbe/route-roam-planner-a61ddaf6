@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { authClient } from "@/lib/auth-client";
 import { hardwarePublicationStatus, publishHardwareIdentity } from "@/lib/pq/hardware-publication.functions";
 import { useI18n } from "@/lib/i18n";
+import { captureEnclaveScope, enclave } from "@/lib/crypto-enclave/client";
 
 export function HardwarePublication() {
  const { user } = useAuth();
@@ -23,10 +24,16 @@ export function HardwarePublication() {
    if (!s.handle) throw new Error("no_handle");
    const signedIn = await authClient.signIn.passkey();
    if (signedIn.error) throw new Error("passkey_required");
+   const scope = captureEnclaveScope();
    const { createHardwarePublication } = await import("@/lib/pq/hardware-publication");
    const created = await createHardwarePublication(user.id, s.rpId, s.handle);
+   scope.assertCurrent();
    const r = await publish({ data: created.payload });
-   if (!r.ok) throw new Error(r.reason);
+   scope.assertCurrent();
+   if (!r.ok) {
+    if (!("prekeyPublished" in r && r.prekeyPublished)) await enclave.pqRatchet.close(user.id, created.sessionId);
+    throw new Error(r.reason);
+   }
    setResult(`${text[1]}: /@${r.handle}/prekey-bundle.json · /@${r.handle}/zkp-anchor.json`);
   } catch (e) { setResult(`${text[2]}: ${e instanceof Error ? e.message : "unavailable"}`); }
   finally { setBusy(false); }
