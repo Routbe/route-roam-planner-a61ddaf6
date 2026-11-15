@@ -1,4 +1,4 @@
--- 0277_tenant_contract_and_merge_fix.sql — Stap 10 part II (CONTRACT, held in db-pending/ until production
+-- 0277_tenant_contract_and_merge_fix.sql — Stap 10 part II (CONTRACT, released after production reported 0276 and the owner's GO; was held until production
 -- runs the code that uses the 0276 EXPAND functions: the health probe must report schema >= 0276).
 --
 --   F1  rout_app reads the private profile columns (email, forwarding_email, forwarding_email_token, forwarding_email_token_expires_at, legal_first_name, legal_last_name, last_city, last_country, last_location_at)
