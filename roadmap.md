@@ -244,6 +244,10 @@
 - [x] Live codeversie bevestigd: https://rout.be/api/public/health meldt operational, schema 0277 (2026-11-15 14:05 UTC); geen deployment vanuit deze chat uitgevoerd
 
 ## Finale Vercel-releasecontrole (2026-11-15)
+- [ ] Herstel publieke root/alias/OG-projecties na 0277; regressietest onder rout_app
+- [ ] Hardwarepublicatie vanuit Developer Console, opslagdiagnostiek en veilige ankerregistratie
+- [ ] scripts/verify-live-merge.ts: zes helpers aanroepen in alleen-lezen transactie
+- [ ] Volledige Vitest-validatie en einddocumentatie; production hertest na nieuwe deploy
 - [ ] Exacte nieuwste stand naar Vercel production deployen en build zonder waarschuwingen/typefouten bevestigen — wacht op Vercel-toegang; geen token, projectkoppeling of deploy-hook beschikbaar
 - [ ] Publieke profielweergaven volledig groen — @jdelplanche toont een voorbeeldprofiel; @routtestkaart23 toont een profiel-lookupfout ondanks HTTP 200
 - [ ] Echte accountsamenvoeging na deploy controleren — wacht op een geautoriseerde productie-testsessie en aangewezen testaccounts; geen echte accounts samengevoegd

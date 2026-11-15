@@ -120,7 +120,8 @@ export async function productionReadDeps(): Promise<PrekeyReadDeps> {
   const { getObject } = await import("@/lib/storage/s3.server");
   return {
     userIdOf: async (handle) => {
-      const { data } = await dbAdmin.from("profiles").select("id").eq("username", handle).maybeSingle();
+      const { data, error } = await dbAdmin.from("profiles").select("id").eq("username", handle).maybeSingle();
+      if (error) throw new Error("prekey_profile_unavailable");
       return (data?.id as string | undefined) ?? null;
     },
     get: async (key) => {

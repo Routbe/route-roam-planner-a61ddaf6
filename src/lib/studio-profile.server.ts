@@ -337,8 +337,8 @@ async function readTrustMeta(profile: Row) {
     const { tiersFor } = await import("./identity/identity-tiers");
     const rows = (await sql`
       select iv.verification_provider::text as provider, coalesce(iv.is_verified, false) as verified,
-             coalesce((to_jsonb(p) ->> 'is_paid')::boolean, false) as is_paid,
-             to_jsonb(p) ->> 'early_believer_at' as early_believer_at
+             coalesce(p.is_paid, false) as is_paid,
+             p.early_believer_at
         from public.profiles p
         left join public.identity_verifications iv on iv.user_id = p.id
        where p.id = ${id} limit 1`) as Row[];
