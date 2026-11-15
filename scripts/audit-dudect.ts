@@ -41,7 +41,10 @@ const fixedPub = x25519.getPublicKey(x25519.utils.randomSecretKey());
 const fixed32 = randomBytes(32);
 const gKey = randomBytes(32), gNonce = randomBytes(12), aad = randomBytes(32);
 const gCt = gcm(gKey, gNonce, aad).encrypt(randomBytes(64));
-const wrongAad = aad.slice(); wrongAad[31] ^= 1;
+// Both classes fail authentication (accept vs reject is public); the tag check must not
+// reveal where the mismatch is. Class 0: tag off in the first byte, class 1: in the last.
+const ctTagFirst = gCt.slice(); ctTagFirst[gCt.length - 16] ^= 1;
+const ctTagLast = gCt.slice(); ctTagLast[gCt.length - 1] ^= 1;
 const prf = randomBytes(32);
 
 const ops: Op[] = [
@@ -49,7 +52,7 @@ const ops: Op[] = [
   { name: "ML-KEM-1024 decapsulation (valid vs tampered ct, implicit rejection)", prepare: (c) => { if (!c) return kemCt; const t = kemCt.slice(); t[(Math.random() * t.length) | 0] ^= 1; return t; }, run: (ct) => ml_kem1024.decapsulate(ct as Uint8Array, kem.secretKey) },
   { name: "ct_equal_32 / subtle (equal vs random)", prepare: (c) => (c ? randomBytes(32) : fixed32.slice()), run: (b) => ctEqual32(fixed32, b as Uint8Array) },
   { name: "WebAuthn PRF -> HKDF-SHA256 expand (fixed vs random PRF)", prepare: (c) => (c ? randomBytes(32) : prf), run: (s) => hkdf(sha256, s as Uint8Array, undefined, new TextEncoder().encode("rout.prf.v1"), 32) },
-  { name: "AES-256-GCM open (correct vs wrong AAD)", prepare: (c) => (c ? wrongAad : aad), run: (a) => { try { return gcm(gKey, gNonce, a as Uint8Array).decrypt(gCt); } catch { return null; } } },
+  { name: "AES-256-GCM open with AAD (tag mismatch first vs last byte)", prepare: (c) => (c ? ctTagLast : ctTagFirst), run: (ct) => { try { return gcm(gKey, gNonce, aad).decrypt(ct as Uint8Array); } catch { return null; } } },
 ];
 
 class Welch { n = [0, 0]; m = [0, 0]; m2 = [0, 0];
