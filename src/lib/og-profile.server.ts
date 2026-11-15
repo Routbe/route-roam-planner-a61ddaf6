@@ -12,18 +12,18 @@ export async function readOgProfile(handle: string, space: "root" | "alias" | "w
        where lower(a.handle) = ${handle} and a.enabled = true
          and coalesce(p.is_banned, false) = false
          and coalesce(p.is_suspended, false) = false
-         and coalesce(to_jsonb(p)->>'status', 'active') not in ('frozen', 'banned', 'suspended')
+         and coalesce(p.status::text, 'active') not in ('frozen', 'banned', 'suspended')
        limit 1`
     : await sql`
       select display_name, tagline, bio, avatar_url, verified,
-             to_jsonb(p)->'display_prefs' as display_prefs,
-             to_jsonb(p)->>'theme' as theme,
-             coalesce((to_jsonb(p)->>'is_business')::boolean, false) as is_business,
-             coalesce((to_jsonb(p)->>'is_influencer')::boolean, false) as is_influencer
+             p.display_prefs as display_prefs,
+             p.theme::text as theme,
+             coalesce((p.is_business::text)::boolean, false) as is_business,
+             coalesce((p.is_influencer::text)::boolean, false) as is_influencer
         from public.profiles p
        where lower(username) = ${handle} and coalesce(is_banned, false) = false
          and coalesce(is_suspended, false) = false
-         and coalesce(to_jsonb(p)->>'status', 'active') not in ('frozen', 'banned', 'suspended')
+         and coalesce(p.status::text, 'active') not in ('frozen', 'banned', 'suspended')
        limit 1`;
   const row = rows[0] as Record<string, unknown> | undefined;
   return row && parseDisplayPrefs(row.display_prefs).publicProfile ? row : null;
