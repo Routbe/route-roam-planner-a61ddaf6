@@ -19,7 +19,7 @@ const args = process.argv.slice(2);
 const smtOut = args.includes("--smt-out") ? args[args.indexOf("--smt-out") + 1] : undefined;
 
 const db = await replayDb();
-await applyPending(db, "0277_private_columns_contract.sql");
+await applyPending(db, "0277_tenant_contract_and_merge_fix.sql");
 const cat = await readCatalog(async (q) => (await db.query<Record<string, unknown>>(q)).rows);
 const opts = (await db.query<{ k: string; o: string[] | null }>(`select n.nspname || '.' || c.relname as k, c.reloptions as o from pg_class c join pg_namespace n on n.oid = c.relnamespace where c.relkind = 'v'`)).rows;
 const report = await new Verifier(cat, Object.fromEntries(opts.map((r) => [r.k, r.o ?? []])), { declassified: PENDING_0277_DECLASSIFIED }).run({ smtOut });
@@ -33,7 +33,7 @@ const count = (s: string) => report.obligations.filter((o) => o.outcome.status =
 const certified = fresh.length === 0 && stillOpen.length === 0 && count("unproven") === 0;
 
 const md = [
-  "# Z3 certification — db-pending/0277_private_columns_contract.sql",
+  "# Z3 certification — db-pending/0277_tenant_contract_and_merge_fix.sql",
   "",
   `Run: ${new Date().toISOString()} · offline PGlite replay of db/ + 0277 · Neon not contacted`,
   "",

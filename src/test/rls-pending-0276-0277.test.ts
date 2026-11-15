@@ -21,9 +21,9 @@ import { contextStatements } from "@/lib/db-context";
 
 const ROOT = join(__dirname, "..", "..");
 const read = (f: string) => readFileSync(join(ROOT, "db-pending", f), "utf8");
-const F76 = "0276_tenant_column_expand.sql", F77 = "0277_private_columns_contract.sql";
+const F76 = "0276_tenant_column_expand.sql", F77 = "0277_tenant_contract_and_merge_fix.sql";
 const SQL76 = readFileSync(join(ROOT, "db", F76), "utf8"), SQL77 = read(F77);
-const RB76 = read("0276_tenant_column_expand_rollback.sql"), RB77 = read("0277_private_columns_contract_rollback.sql");
+const RB76 = read("0276_tenant_column_expand_rollback.sql"), RB77 = read("0277_tenant_contract_and_merge_fix_rollback.sql");
 const A = "00000000-0000-4000-8000-00000000000a";
 const B = "00000000-0000-4000-8000-00000000000b";
 const MARK = "bob-private-91d2";

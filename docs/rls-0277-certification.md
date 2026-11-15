@@ -1,4 +1,4 @@
-# Z3 certification — db-pending/0277_private_columns_contract.sql
+# Z3 certification — db-pending/0277_tenant_contract_and_merge_fix.sql
 
 Run: 2026-11-15T12:59:44.157Z · offline PGlite replay of db/ + 0277 · Neon not contacted
 
