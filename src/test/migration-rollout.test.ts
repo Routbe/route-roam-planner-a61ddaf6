@@ -1,7 +1,7 @@
 // @vitest-environment node
 /**
  * scripts/migration-rollout.ts: the one-file gateway batch used for each GO
- * (0273, 0274, now 0276). Emulates the gateway batch (one transaction, every query
+ * (0273, 0274, 0276, now 0277). Emulates the gateway batch (one transaction, every query
  * with its params) on PGlite over a replay of db/ before the file, recorded as
  * Neon has it.
  */
@@ -15,11 +15,11 @@ import { catalogJson, readCatalog } from "../../scripts/schema-catalog";
 
 const ROOT = join(__dirname, "..", "..");
 const DIR = join(ROOT, "db");
-const FILE = "0276_tenant_column_expand.sql";
-const AFTER = "0275_rls_non_interference_hardening.sql";
+const FILE = "0277_tenant_contract_and_merge_fix.sql";
+const AFTER = "0276_tenant_column_expand.sql";
 const BODY = readFileSync(join(DIR, FILE), "utf8");
 
-describe("one-file rollout batch (0276)", () => {
+describe("one-file rollout batch (0277)", () => {
   let db: PGlite;
   const batch = async (queries: RolloutQuery[]) => {
     await db.exec("begin");
@@ -59,14 +59,14 @@ describe("one-file rollout batch (0276)", () => {
 
   it("refuses a text that differs by one byte, a missing predecessor, and changes nothing", async () => {
     const good = rolloutBatch(FILE, AFTER, BODY);
-    const tampered = good.map((q) => (q.params.length === 4 ? { ...q, params: [FILE, AFTER, BODY.replace("rout_tenant_ref_kept", "rout_tenant_ref_kepx"), q.params[3]] } : q));
+    const tampered = good.map((q) => (q.params.length === 4 ? { ...q, params: [FILE, AFTER, BODY.replace("rout_merge_executor", "rout_merge_executox"), q.params[3]] } : q));
     await expect(batch(tampered)).rejects.toThrow(/does not match checksum/);
     await expect(batch(rolloutBatch(FILE, "0274_multi_device_host_keys.sql_missing", BODY))).rejects.toThrow(/predecessor/);
     expect(await newFns()).toBe(0);
     expect(await recorded()).toEqual([]);
   });
 
-  it("applies 0276 exactly like the snapshot replay, records the file checksum, and refuses a second run", async () => {
+  it("applies 0277 exactly like the snapshot replay, records the file checksum, and refuses a second run", async () => {
     const rows = await batch(rolloutBatch(FILE, AFTER, BODY));
     expect(rows[1]).toEqual([{ applied: checksumOf(BODY) }]);
     expect(await recorded()).toEqual([{ checksum: checksumOf(BODY) }]);
